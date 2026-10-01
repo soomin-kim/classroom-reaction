@@ -26,14 +26,25 @@ html,body{height:100vh;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun
 .floater{position:absolute;bottom:60px;animation:rise 3.5s ease-out forwards;pointer-events:none;z-index:10}
 .floater-emoji{font-size:58px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.6))}
 
-.chat-log{position:fixed;bottom:18px;right:290px;width:250px;max-height:350px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding:4px 2px;z-index:5;scrollbar-width:thin;scrollbar-color:rgba(144,238,144,.2) transparent;transition:right .3s}
+.chat-log{position:fixed;bottom:18px;right:290px;width:250px;max-height:350px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding:4px 2px;z-index:5;scrollbar-width:thin;scrollbar-color:rgba(144,238,144,.2) transparent;transition:right .3s;pointer-events:none}
 .chat-log.wide{right:18px}
 .chat-log::-webkit-scrollbar{width:3px}
 .chat-log::-webkit-scrollbar-thumb{background:rgba(144,238,144,.2);border-radius:4px}
 @keyframes pop-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.chat-bubble{background:rgba(7,28,16,.75);backdrop-filter:blur(18px);border:1px solid rgba(100,220,130,.2);border-radius:14px;padding:8px 12px;animation:pop-in .3s ease}
+.chat-bubble{position:relative;flex:0 0 auto;background:rgba(7,28,16,.75);backdrop-filter:blur(18px);border:1px solid rgba(100,220,130,.2);border-radius:14px;padding:8px 12px;animation:pop-in .3s ease;pointer-events:auto}
 .chat-bubble .who{font-size:11px;color:#6fcf97;margin-bottom:3px}
-.chat-bubble .txt{font-size:13px;line-height:1.45;word-break:break-all}
+.chat-bubble .txt{font-size:13px;line-height:1.45;word-break:break-all;padding-right:14px}
+
+/* 확인함 버튼 */
+.chat-bubble .done-btn{position:absolute;top:5px;right:6px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(255,255,255,.06);color:#6fcf97;font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,background .15s,color .15s}
+.chat-bubble:hover .done-btn,.chat-bubble:focus-within .done-btn{opacity:1}
+.chat-bubble .done-btn:hover{background:rgba(34,197,94,.35);color:#fff}
+.chat-bubble .done-btn:focus-visible{opacity:1;outline:2px solid #6fcf97;outline-offset:1px}
+@keyframes bubble-out{to{opacity:0;transform:translateX(36px) scale(.94)}}
+.chat-bubble.resolved{animation:bubble-out .28s ease forwards;pointer-events:none}
+@media (prefers-reduced-motion:reduce){
+  .chat-bubble,.chat-bubble.resolved,.floater{animation-duration:.01ms}
+}
 
 /* 사이드바 패널 */
 .panel{width:275px;min-width:275px;background:rgba(6,22,12,.82);backdrop-filter:blur(24px);border-left:1px solid rgba(100,220,130,.18);display:flex;flex-direction:column;gap:14px;padding:20px 16px;overflow-y:auto;z-index:5;box-shadow:-4px 0 30px rgba(0,0,0,.4);transition:all .3s;position:relative}
@@ -60,6 +71,59 @@ html,body{height:100vh;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun
 .clr-btn{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(100,220,130,.12);border-radius:8px;padding:7px;color:#6fcf97;font-size:11px;cursor:pointer}
 .clr-btn:hover{color:#a7f3c0;background:rgba(255,255,255,.08)}
 .ewha-mark{font-size:10px;color:rgba(100,220,130,.3);text-align:center;letter-spacing:.1em;margin-top:auto;padding-top:4px}
+
+/* 상시 표시되는 구석 QR (오버레이 모드 전용) */
+.qr-mini{position:fixed;right:20px;top:20px;z-index:25;display:none;flex-direction:column;align-items:center;gap:6px;background:rgba(6,22,12,.86);backdrop-filter:blur(16px);border:1px solid rgba(100,220,130,.25);border-radius:16px;padding:12px 12px 10px;box-shadow:0 6px 26px rgba(0,0,0,.5);pointer-events:none}
+.qr-mini.pos-tl{left:20px;right:auto;top:20px;bottom:auto}
+.qr-mini.pos-tr{right:20px;left:auto;top:20px;bottom:auto}
+.qr-mini.pos-bl{left:20px;right:auto;bottom:20px;top:auto}
+.qr-mini.pos-br{right:20px;left:auto;bottom:20px;top:auto}
+body.o-mode .qr-mini{display:flex}
+body.o-mode .qr-mini.off{display:none}
+.qr-mini .qr-white{background:#fff;border-radius:9px;padding:7px;line-height:0}
+.qr-mini .qr-white img,.qr-mini .qr-white canvas{display:block;width:var(--qr-mini,124px);height:var(--qr-mini,124px)}
+.qr-mini-code{font-size:17px;font-weight:800;letter-spacing:.14em;color:#a7f3c0;line-height:1}
+.qr-mini-txt{font-size:10px;color:rgba(111,207,151,.75);letter-spacing:.04em}
+
+/* 오버레이 하단 버튼 (클릭 통과 창이라 버튼에만 data-interactive) */
+.obar{position:fixed;bottom:20px;left:20px;z-index:26;display:none;gap:8px;pointer-events:none}
+.obar.pos-bl{left:20px;right:auto}
+.obar.pos-br{right:20px;left:auto}
+.obtn{pointer-events:auto;cursor:pointer;font-family:inherit;font-size:13px;line-height:1;white-space:nowrap;
+      padding:9px 13px;border-radius:11px;border:1px solid rgba(100,220,130,.28);
+      background:rgba(6,22,12,.82);backdrop-filter:blur(14px);color:#a7f3c0;
+      box-shadow:0 4px 18px rgba(0,0,0,.4);opacity:.4;transition:opacity .15s,background .15s,color .15s}
+.obar:hover .obtn{opacity:1}
+.obtn:hover{background:rgba(6,22,12,.98);color:#fff;border-color:rgba(100,220,130,.5)}
+.obtn.off{color:rgba(200,245,216,.5);border-color:rgba(140,160,148,.3)}
+.obtn:focus-visible{opacity:1;outline:2px solid #6fcf97;outline-offset:2px}
+body.o-mode .obar{display:flex}
+body.o-mode.locked .obar{display:none}
+body.chat-off .chat-log{display:none}
+
+/* 참여 안내 카드 (단축키로 슬라이드 위에 잠깐 띄움) */
+.qr-flash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:30;pointer-events:none}
+.qr-flash.on{display:flex;animation:pop-in .25s ease}
+.qr-card{background:rgba(6,22,12,.94);backdrop-filter:blur(24px);border:1px solid rgba(100,220,130,.3);border-radius:26px;padding:30px 34px;display:flex;align-items:center;gap:32px;box-shadow:0 24px 70px rgba(0,0,0,.65)}
+.qr-card .qr-white{background:#fff;border-radius:14px;padding:12px;line-height:0}
+.qr-card .qr-white img,.qr-card .qr-white canvas{display:block}
+.qr-flash-label{font-size:15px;color:#6fcf97;margin-bottom:10px}
+.qr-flash-code{font-size:58px;font-weight:800;letter-spacing:.18em;color:#a7f3c0;line-height:1}
+.qr-flash-url{font-size:14px;color:rgba(200,245,216,.65);margin-top:12px}
+
+/* ─── 오버레이 모드 (Electron 투명 창) ─── */
+body.o-mode{background:transparent}
+body.o-mode .ewha-bg,body.o-mode .petal,body.o-mode .panel,body.o-mode .ptog{display:none}
+body.o-mode .ins{background:transparent}
+body.o-mode .chat-log{right:20px;bottom:20px;width:calc(var(--chat-font,22px) * 19);max-height:52vh;gap:8px}
+/* 자막 스타일: 배경 없이 글자 + 검은 외곽선. --chat-color 글자색, --chat-alpha 검은 배경 불투명도(기본 0) */
+body.o-mode .chat-bubble{background:rgba(0,0,0,var(--chat-alpha,0));backdrop-filter:none;border-color:transparent;box-shadow:none;padding:11px 16px;border-radius:16px;transition:background .15s}
+body.o-mode .chat-bubble:hover{background:rgba(0,0,0,max(var(--chat-alpha,0),.35))}  /* 닫을 때 어느 말풍선인지 보이게 */
+body.o-mode .chat-bubble .who{font-size:calc(var(--chat-font,22px) * .68);margin-bottom:4px;font-weight:600;color:color-mix(in srgb,var(--chat-color,#fff) 78%,#000);text-shadow:-.07em -.07em 0 #000,.07em -.07em 0 #000,-.07em .07em 0 #000,.07em .07em 0 #000,0 0 .3em rgba(0,0,0,.7)}
+body.o-mode .chat-bubble .txt{font-size:var(--chat-font,22px);font-weight:700;padding-right:calc(var(--chat-font,22px) * .9);color:var(--chat-color,#fff);text-shadow:-.07em -.07em 0 #000,.07em -.07em 0 #000,-.07em .07em 0 #000,.07em .07em 0 #000,0 0 .3em rgba(0,0,0,.7)}
+body.o-mode .chat-bubble .done-btn{width:28px;height:28px;font-size:15px;top:7px;right:8px;background:rgba(0,0,0,.55);color:#fff}
+body.o-mode.locked .chat-bubble{pointer-events:none}
+body.o-mode.locked .chat-bubble .done-btn{display:none}
 
 /* 학생 */
 body.s-mode .ewha-bg,body.e-mode .ewha-bg{display:none}
@@ -94,30 +158,37 @@ body.e-mode{background:linear-gradient(150deg,#071c10 0%,#0f3320 50%,#0a2216 100
 <div id="app"></div>
 <script>
 const NTFY='https://ntfy.sh';
-const BASE_URL='https://shinyflight.github.io/classroom-reaction/';
-const EMOJIS=['❓','💡','✋','👍','🔥','😮','😴','🙏'];
+const BASE_URL='https://soomin-kim.github.io/classroom-reaction/';
+const EMOJIS=['❓','💡','✋','👍','🔥','😮','😴','🙏','😱','😭','👏','🥰'];
 const ADJ=['신나는','졸린','배고픈','귀여운','용감한','수줍은','엉뚱한','똑똑한','느긋한','깜찍한'];
 const ANI=['곰🐻','토끼🐰','여우🦊','판다🐼','펭귄🐧','고양이🐱','강아지🐶','부엉이🦉','다람쥐🐿️','햄스터🐹'];
 const NAMES=ADJ.flatMap(a=>ANI.map(n=>a+' '+n));
 
-// 벚꽃
-const PETALS=['🌸','🌿','✿','❀','🍃'];
-for(let i=0;i<20;i++){
-  const p=document.createElement('div'); p.className='petal';
-  p.textContent=PETALS[i%PETALS.length];
-  p.style.cssText=`left:${Math.random()*100}%;font-size:${9+Math.random()*12}px;animation-duration:${9+Math.random()*14}s;animation-delay:${-Math.random()*14}s`;
-  document.body.appendChild(p);
+const h=location.hash;
+const overlayMode=h.startsWith('#o-');
+if(overlayMode) document.body.classList.add('o-mode');
+
+// 벚꽃 (오버레이 모드에서는 생략)
+if(!overlayMode){
+  const PETALS=['🌸','🌿','✿','❀','🍃'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div'); p.className='petal';
+    p.textContent=PETALS[i%PETALS.length];
+    p.style.cssText=`left:${Math.random()*100}%;font-size:${9+Math.random()*12}px;animation-duration:${9+Math.random()*14}s;animation-delay:${-Math.random()*14}s`;
+    document.body.appendChild(p);
+  }
 }
 
-const h=location.hash;
-if(h.startsWith('#s-'))      initStudent(h.slice(3));
+if(h.startsWith('#s-'))       initStudent(h.slice(3));
+else if(overlayMode)          initInstructor(h.slice(3));
+else if(h.startsWith('#i-'))  initInstructor(h.slice(3));
 else if(h==='#e')             initEntry();
 else                          initInstructor(Math.random().toString(36).slice(2,8).toUpperCase());
 
 /* ─── 강의자 ─── */
 function initInstructor(sid){
   const topic='liveclass2025-'+sid;
-  let ec=0, cc=0, panelOpen=true;
+  let ec=0, cc=0, dc=0, panelOpen=true;
   const emojiCount={};
 
   document.getElementById('app').innerHTML=`
@@ -131,19 +202,43 @@ function initInstructor(sid){
         <div class="sid-val">${sid}</div>
       </div>
       <div class="qr-box"><div id="qrc"></div></div>
-      <div class="stat-row">이모지 <b id="ec">0</b>개 &nbsp;·&nbsp; 채팅 <b id="cc">0</b>개</div>
+      <div class="stat-row">이모지 <b id="ec">0</b>개 &nbsp;·&nbsp; 채팅 <b id="cc">0</b>개 &nbsp;·&nbsp; 확인 <b id="dc">0</b>개</div>
       <div class="estat" id="estat"></div>
       <button class="clr-btn" onclick="clearAll()">채팅 · 이모지 기록 지우기</button>
       <div class="ewha-mark">EWHA WOMANS UNIVERSITY</div>
       <div class="ewha-mark" style="margin-top:2px">© CSE | Uiwon Hwang</div>
     </div>
   </div>
+  <div class="qr-mini" id="qrmini">
+    <div class="qr-white" id="qrsmall"></div>
+    <div class="qr-mini-code">${sid}</div>
+    <div class="qr-mini-txt">스캔해서 참여</div>
+  </div>
+  <div class="qr-flash" id="qrflash">
+    <div class="qr-card">
+      <div class="qr-white" id="qrbig"></div>
+      <div>
+        <div class="qr-flash-label">휴대폰으로 QR을 찍거나, 주소창에 아래를 입력하세요</div>
+        <div class="qr-flash-code">${sid}</div>
+        <div class="qr-flash-url">${BASE_URL.replace(/^https?:\/\//,'')}#e</div>
+      </div>
+    </div>
+  </div>
+  <div class="obar pos-bl" id="obar">
+    <button class="obtn" id="btn-chat" data-interactive onclick="toggleChat()">질문 숨기기</button>
+    <button class="obtn" id="btn-qr" data-interactive onclick="toggleMiniQR()">QR 숨기기</button>
+  </div>
   <button class="ptog" id="ptog" onclick="togglePanel()">사이드바</button>`;
 
   // QR 생성
   const qrFull=BASE_URL+'#s-'+sid;
-  try{ new QRCode(document.getElementById('qrc'),{text:qrFull,width:200,height:200,colorDark:'#000',colorLight:'#fff'}); }
-  catch{ document.getElementById('qrc').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrFull)}" style="width:200px;height:200px">`; }
+  const makeQR=(el,size)=>{
+    try{ new QRCode(el,{text:qrFull,width:size,height:size,colorDark:'#000',colorLight:'#fff'}); }
+    catch{ el.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrFull)}" style="width:${size}px;height:${size}px">`; }
+  };
+  makeQR(document.getElementById('qrc'),200);
+  makeQR(document.getElementById('qrbig'),300);
+  makeQR(document.getElementById('qrsmall'),260);  // CSS로 축소 표시 → 확대해도 선명
 
   // ntfy 구독 (즉시 시작)
   const t0=Date.now()/1000;
@@ -176,6 +271,60 @@ function initInstructor(sid){
     document.getElementById('cc').textContent=0;
   };
 
+  // 확인한 질문 하나 닫기
+  window.resolveBubble=el=>{
+    if(!el||el.classList.contains('resolved'))return;
+    el.classList.add('resolved');
+    dc++; document.getElementById('dc').textContent=dc;
+    setTimeout(()=>el.remove(),300);
+  };
+  // 단축키용: 가장 오래된(위쪽) 질문부터 닫기
+  window.dismissOldest=()=>resolveBubble(document.querySelector('.chat-bubble:not(.resolved)'));
+  window.setLocked=on=>document.body.classList.toggle('locked',!!on);
+
+  // 하단 버튼 라벨을 현재 상태에 맞춘다 (단축키로 바꿔도 따라옴)
+  function syncBar(){
+    const setBtn=(id,hidden,label)=>{
+      const b=document.getElementById(id); if(!b)return;
+      b.classList.toggle('off',hidden);
+      b.textContent=hidden ? label+' 보기' : label+' 숨기기';
+    };
+    setBtn('btn-chat',document.body.classList.contains('chat-off'),'질문');
+    setBtn('btn-qr',document.getElementById('qrmini').classList.contains('off'),'QR');
+  }
+
+  // 말풍선만 감춘다. DOM은 그대로 두므로 감춘 동안 온 질문도 다시 켜면 보인다.
+  window.toggleChat=on=>{
+    const hide = on===undefined ? !document.body.classList.contains('chat-off') : !on;
+    document.body.classList.toggle('chat-off',hide);
+    if(!hide){ const l=document.getElementById('clog'); l.scrollTop=l.scrollHeight; }
+    syncBar();
+  };
+
+  window.toggleMiniQR=on=>{
+    const el=document.getElementById('qrmini');
+    el.classList.toggle('off', on===undefined ? !el.classList.contains('off') : !on);
+    syncBar();
+  };
+  window.setBarPos=p=>{
+    const el=document.getElementById('obar');
+    el.classList.remove('pos-bl','pos-br');
+    el.classList.add(/^br$/.test(p) ? 'pos-br' : 'pos-bl');
+  };
+  window.setMiniQRSize=px=>document.documentElement.style.setProperty('--qr-mini',px+'px');
+  window.setChatSize=px=>document.documentElement.style.setProperty('--chat-font',px+'px');
+  window.setChatColor=c=>document.documentElement.style.setProperty('--chat-color',c);
+  window.setChatOpacity=a=>document.documentElement.style.setProperty('--chat-alpha',Math.min(1,Math.max(0,Number(a))));
+  window.setMiniQRPos=p=>{
+    const el=document.getElementById('qrmini');
+    el.classList.remove('pos-tl','pos-tr','pos-bl','pos-br');
+    if(/^(tl|tr|bl|br)$/.test(p)) el.classList.add('pos-'+p);
+  };
+  window.toggleQR=on=>{
+    const el=document.getElementById('qrflash');
+    el.classList.toggle('on', on===undefined ? !el.classList.contains('on') : !!on);
+  };
+
   window.spawnEmoji=content=>{
     const el=document.createElement('div'); el.className='floater';
     el.style.left=(5+Math.random()*80)+'%';
@@ -189,8 +338,13 @@ function initInstructor(sid){
 
   window.addChat=p=>{
     const log=document.getElementById('clog');
-    const el=document.createElement('div'); el.className='chat-bubble';
-    el.innerHTML=`<div class="who">${esc(p.name||'익명')}</div><div class="txt">${esc(p.content)}</div>`;
+    const el=document.createElement('div');
+    el.className='chat-bubble';
+    el.setAttribute('data-interactive','');   // preload가 이 표시를 보고 마우스를 잠깐 받는다
+    el.innerHTML=`<div class="who">${esc(p.name||'익명')}</div>
+                  <div class="txt">${esc(p.content)}</div>
+                  <button class="done-btn" title="확인함 (닫기)" aria-label="확인함">✓</button>`;
+    el.querySelector('.done-btn').addEventListener('click',()=>resolveBubble(el));
     log.appendChild(el);
     log.scrollTop=log.scrollHeight;
     cc++; document.getElementById('cc').textContent=cc;
